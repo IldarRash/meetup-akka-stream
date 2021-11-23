@@ -1,10 +1,11 @@
 package com.example.helloworld
 
+import akka.NotUsed
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Flow, Source}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -20,7 +21,9 @@ case class EventWeather(coord: Coord, weather: List[Weather])
 case class Weather(id: Long = 0, main: String = "Empty", description: String = "Empty")
 
 class EventService(fileService: FileService)(implicit val system: ActorSystem[_]) {
+
   import WeatherJson._
+
   private val key = "c4039d97635076407057b0cb34b46da3"
 
   def getItemsByFilter(filterRequest: FilterRequest) =
@@ -32,18 +35,26 @@ class EventService(fileService: FileService)(implicit val system: ActorSystem[_]
       .mapAsync(1)(getWeather)
       .throttle(1, 1.seconds)
 
-def getWeather(event: Event) =
-      Http()
-        .singleRequest(
-          HttpRequest(
-            uri = s"http://api.openweathermap.org/data/2.5/weather?q=${event.city}&appid=${key}")
-        )
-        .flatMap(answer =>
-          Unmarshal.apply(answer).to[EventWeather]
-        )
-        .map(weather => EventW.apply(event.id, event, weather)
-  )
+  def getWeather(event: Event) =
+    Http()
+      .singleRequest(
+        HttpRequest(
+          uri = s"http://api.openweathermap.org/data/2.5/weather?q=${event.city}&appid=${key}")
+      )
+      .flatMap(answer =>
+        Unmarshal.apply(answer).to[EventWeather]
+      )
+      .map(weather => EventW.apply(event.id, event, weather))
 
+  def takeVeryLongTask() =
+    Source.fromIterator(() => List("1", "2" , "3", "4", "5", "6", "7").iterator)
+      .via(longFlow)
+      .fold("")((a, b) => a + b)
+
+  def longFlow = Flow.fromFunction[String, String](magicNumber => {
+      Thread.sleep(2000)
+      magicNumber
+  })
   def strToEvent(line: String): Event = {
     val items = line.split(",")
     Event.apply(items(0), items(1), items(2), items(3), items(5), items(4).toInt, System.currentTimeMillis())

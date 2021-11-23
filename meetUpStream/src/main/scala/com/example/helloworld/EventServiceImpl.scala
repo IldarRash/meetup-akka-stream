@@ -3,7 +3,7 @@ package com.example.helloworld
 //#import
 import akka.NotUsed
 import akka.actor.typed.ActorSystem
-import akka.stream.scaladsl.{Flow, Keep, Source}
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 
 import scala.concurrent.Future
 
@@ -14,7 +14,10 @@ import scala.concurrent.Future
 class EventServiceImpl(system: ActorSystem[_], eventService: EventService) extends EventStreamService {
   private implicit val sys: ActorSystem[_] = system
 
-  override def getEvent(in: FilterRequest): Future[EventResponse] = ???
+  override def getEvent(in: FilterRequest): Future[EventResponse] =
+    eventService.takeVeryLongTask()
+      .map(id => EventResponse.apply(id = id))
+      .runWith(Sink.last)
 
   val flow: Flow[EventW, EventResponse, NotUsed] =
     Flow.fromFunction[EventW, EventResponse](eventW =>
