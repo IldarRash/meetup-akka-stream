@@ -46,15 +46,6 @@ class EventService(fileService: FileService)(implicit val system: ActorSystem[_]
       )
       .map(weather => EventW.apply(event.id, event, weather))
 
-  def takeVeryLongTask() =
-    Source.fromIterator(() => List("1", "2" , "3", "4", "5", "6", "7").iterator)
-      .via(longFlow)
-      .fold("")((a, b) => a + b)
-
-  def longFlow = Flow.fromFunction[String, String](magicNumber => {
-      Thread.sleep(2000)
-      magicNumber
-  })
   def strToEvent(line: String): Event = {
     val items = line.split(",")
     Event.apply(items(0), items(1), items(2), items(3), items(5), items(4).toInt, System.currentTimeMillis())
