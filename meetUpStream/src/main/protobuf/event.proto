@@ -21,7 +21,11 @@ service EventStreamService {
 
 // The request message containing the user's name.
 message FilterRequest {
-    string filter = 1;
+    string filterCity = 1;
+    string filterName = 2;
+    int32 filterCost = 3;
+    int32 throttle = 4;
+    string dir = 5;
 }
 
 // The response message containing the greetings

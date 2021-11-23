@@ -14,18 +14,14 @@ import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 class EventServiceImpl(system: ActorSystem[_], eventService: EventService) extends EventStreamService {
   private implicit val sys: ActorSystem[_] = system
 
-  /**
-   * Sends a greeting
-   */
   override def getEvent(in: FilterRequest): Future[EventResponse] =
-    Future.successful(EventResponse.apply("1", 15, in.filter, System.currentTimeMillis()))
-
+    Future.successful(EventResponse.apply("1", 15, in.filterName, System.currentTimeMillis()))
 
   val flow: Flow[Event, EventResponse, NotUsed] =
     Flow.fromFunction[Event, EventResponse](event => EventResponse.apply(event.id, event.cost, event.desc, event.time))
 
   override def getFilterEvent(in: FilterRequest): Source[EventResponse, NotUsed] =
-    eventService.getAllEvent
-      .take(100)
+    eventService.getItemsByFilter(in)
+      .take(10)
       .viaMat(flow)(Keep.right)
 }

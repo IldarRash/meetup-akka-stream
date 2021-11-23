@@ -50,7 +50,7 @@ class EventServer(system: ActorSystem[_]) {
     implicit val ec: ExecutionContext = system.executionContext
 
     val service: HttpRequest => Future[HttpResponse] =
-      EventStreamServiceHandler(new EventServiceImpl(system, EventService()))
+      EventStreamServiceHandler(new EventServiceImpl(system, EventService(system)))
 
     val bound: Future[Http.ServerBinding] = Http(system)
       .newServerAt(interface = "127.0.0.1", port = 8080)
@@ -65,7 +65,6 @@ class EventServer(system: ActorSystem[_]) {
         println("Failed to bind gRPC endpoint, terminating system", ex)
         system.terminate()
     }
-
     bound
   }
 
