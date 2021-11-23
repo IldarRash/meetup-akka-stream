@@ -11,11 +11,11 @@ import scala.concurrent.Future
 
 //#service-request-reply
 //#service-stream
-class EventServiceImpl(system: ActorSystem[_], eventService: EventService) extends EventStreamService {
+class EventServiceImpl(system: ActorSystem[_], eventService: EventService, longTaskService: LongTaskService) extends EventStreamService {
   private implicit val sys: ActorSystem[_] = system
 
   override def getEvent(in: FilterRequest): Future[EventResponse] =
-    eventService.takeVeryLongTask()
+    longTaskService.takeVeryLongTask()
       .map(id => EventResponse.apply(id = id))
       .runWith(Sink.last)
 
