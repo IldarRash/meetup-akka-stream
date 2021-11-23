@@ -12,7 +12,6 @@ class FileService {
   def getAllFilesFromDir(pathDir : String): Iterator[File] =
     new File(getClass.getResource(pathDir).getPath).listFiles.filter(_.isFile).toList.iterator
 
-
   def getAllStringFromFile(file: File): Source[String, NotUsed] =
     Source.fromIterator(() => fromFile(file).getLines())
 }

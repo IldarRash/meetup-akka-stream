@@ -1,11 +1,11 @@
 package com.example.helloworld
 
 //#import
-import scala.concurrent.Future
 import akka.NotUsed
-import akka.actor.Cancellable
 import akka.actor.typed.ActorSystem
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
+import akka.stream.scaladsl.{Flow, Keep, Source}
+
+import scala.concurrent.Future
 
 //#import
 
@@ -14,11 +14,14 @@ import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 class EventServiceImpl(system: ActorSystem[_], eventService: EventService) extends EventStreamService {
   private implicit val sys: ActorSystem[_] = system
 
-  override def getEvent(in: FilterRequest): Future[EventResponse] =
-    Future.successful(EventResponse.apply("1", 15, in.filterName, System.currentTimeMillis()))
+  override def getEvent(in: FilterRequest): Future[EventResponse] = ???
 
-  val flow: Flow[Event, EventResponse, NotUsed] =
-    Flow.fromFunction[Event, EventResponse](event => EventResponse.apply(event.id, event.cost, event.desc, event.time))
+  val flow: Flow[EventW, EventResponse, NotUsed] =
+    Flow.fromFunction[EventW, EventResponse](eventW =>
+      EventResponse.apply(eventW.id,
+        Some(UserResponse.apply(cost = eventW.event.cost, desc = eventW.event.desc, time = eventW.event.time, userName = eventW.event.userName, itemName = eventW.event.itemName)),
+        Some(WeatherResponse.apply(id = 0, main = eventW.eventWeather.coord.toString, desc = eventW.eventWeather.weather.toString())))
+    )
 
   override def getFilterEvent(in: FilterRequest): Source[EventResponse, NotUsed] =
     eventService.getItemsByFilter(in)

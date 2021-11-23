@@ -31,8 +31,21 @@ message FilterRequest {
 // The response message containing the greetings
 message EventResponse {
     string id = 1;
-    int32 cost = 2;
-    string desc = 3;
-    int64 time = 4;
+    UserResponse event = 2;
+    WeatherResponse weather = 3;
+}
+
+message UserResponse {
+    int32 cost = 1;
+    string desc = 2;
+    int64 time = 3;
+    string userName = 4;
+    string itemName = 5;
+}
+
+message WeatherResponse {
+    int64 id = 1;
+    string main = 2;
+    string  desc = 3;
 }
 //#service-request-reply
