@@ -1,8 +1,5 @@
 package com.example.helloworld
 
-//#import
-
-
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
@@ -12,7 +9,6 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-//#import
 
 
 //#server

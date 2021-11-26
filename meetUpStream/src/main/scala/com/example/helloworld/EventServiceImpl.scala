@@ -1,23 +1,24 @@
 package com.example.helloworld
 
-//#import
 import akka.NotUsed
 import akka.actor.typed.ActorSystem
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.KillSwitches
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 
 import scala.concurrent.Future
 
-//#import
-
-//#service-request-reply
-//#service-stream
 class EventServiceImpl(system: ActorSystem[_], eventService: EventService, longTaskService: LongTaskService) extends EventStreamService {
   private implicit val sys: ActorSystem[_] = system
 
-  override def getEvent(in: FilterRequest): Future[EventResponse] =
-    longTaskService.takeVeryLongTask()
+  override def getEvent(in: FilterRequest): Future[EventResponse] = {
+    val runnableGraph= longTaskService.takeVeryLongTask()
       .map(id => EventResponse.apply(id = id))
-      .runWith(Sink.last)
+      .viaMat(KillSwitches.single)(Keep.right)
+      .toMat(Sink.last)(Keep.both)
+      .run()
+
+    runnableGraph._2
+  }
 
   val flow: Flow[EventW, EventResponse, NotUsed] =
     Flow.fromFunction[EventW, EventResponse](eventW =>
@@ -30,4 +31,15 @@ class EventServiceImpl(system: ActorSystem[_], eventService: EventService, longT
     eventService.getItemsByFilter(in)
       .take(10)
       .viaMat(flow)(Keep.right)
+
+  override def messanger(in: Source[EchoRequest, NotUsed]): Source[EchoResponse, NotUsed] = {
+    in.runWith(inboundHub)
+    outboundHub
+  }
+
+  val (inboundHub: Sink[EchoRequest, NotUsed], outboundHub: Source[EchoResponse, NotUsed]) =
+    MergeHub.source[EchoRequest]
+      .map(request => EchoResponse.apply(request.userId, s"Hello, from ${request.userId} : ${request.message}"))
+      .toMat(BroadcastHub.sink[EchoResponse])(Keep.both)
+      .run()
 }

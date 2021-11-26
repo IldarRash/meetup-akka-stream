@@ -5,21 +5,25 @@ option java_multiple_files = true;
 option java_package = "com.example.helloworld";
 option java_outer_classname = "EventProto";
 
-// The greeting service definition.
 service EventStreamService {
-    // Sends a greeting
+
     rpc getEvent (FilterRequest) returns (EventResponse) {}
-    //#service-request-reply
-    //#service-stream
-    // The stream of incoming HelloRequest messages are
-    // sent out as corresponding HelloReply. From
-    // all clients to all clients, like a chat room.
+
     rpc getFilterEvent (FilterRequest) returns (stream EventResponse) {}
-    //#service-stream
-    //#service-request-reply
+
+    rpc messanger(stream EchoRequest) returns (stream EchoResponse) {}
 }
 
-// The request message containing the user's name.
+message EchoRequest {
+    string userId = 1;
+    string message = 2;
+}
+
+message EchoResponse {
+    string fromId = 1;
+    string message = 2;
+}
+
 message FilterRequest {
     string filterCity = 1;
     string filterName = 2;
@@ -28,7 +32,6 @@ message FilterRequest {
     string dir = 5;
 }
 
-// The response message containing the greetings
 message EventResponse {
     string id = 1;
     UserResponse event = 2;

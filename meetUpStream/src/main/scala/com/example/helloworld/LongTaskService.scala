@@ -1,7 +1,6 @@
 package com.example.helloworld
 
 import akka.NotUsed
-import akka.actor.typed.ActorSystem
 import akka.stream.FlowShape
 import akka.stream.scaladsl.{Balance, Flow, GraphDSL, Merge, Source}
 
